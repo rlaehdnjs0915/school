@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>대동고 오늘</title>
+<!-- iOS 홈 화면 앱 설정 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="대동고">
+<meta name="theme-color" content="#1E5A3C">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231E5A3C'/%3E%3Ctext x='50' y='63' font-size='40' text-anchor='middle' fill='%23F5C844' font-family='sans-serif' font-weight='bold'%3E대%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#F2F4F1; --ink:#171B18; --board:#1E5A3C; --chalk:#F5C844;
+    --sub:#5C665F; --line:#DDE3DD; --card:#FFF;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+    max-width:480px; margin-inline:auto; min-height:100vh;
+    padding-top:env(safe-area-inset-top);
+  }
+  header{
+    background:var(--board); color:#FDFDF8; padding:20px 20px 0;
+    border-radius:0 0 24px 24px; box-shadow:0 6px 18px rgba(21,68,48,.25);
+  }
+  .head-row{display:flex; align-items:baseline; justify-content:space-between}
+  h1{margin:0; font-size:22px; font-weight:800}
+  .today-lbl{font-size:13px; opacity:.8}
+  nav{display:flex; gap:4px; margin-top:16px}
+  nav button{
+    flex:1; padding:12px 0 14px; font-size:16px; font-weight:700; border:none;
+    background:transparent; color:rgba(253,253,248,.75);
+    border-radius:14px 14px 0 0; cursor:pointer;
+  }
+  nav button.on{background:var(--bg); color:var(--board)}
+  main{padding:16px; padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+  .datebar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+  .navbtn{
+    width:40px; height:40px; border-radius:12px; border:1px solid var(--line);
+    background:#FFF; font-size:16px; color:var(--ink);
+  }
+  .datebtn{border:none; background:transparent; font-size:17px; font-weight:800; color:var(--ink)}
+  .badge{
+    margin-left:6px; font-size:12px; font-weight:700; color:var(--board);
+    background:#E3EDE6; border-radius:8px; padding:2px 8px;
+  }
+  .card{background:var(--card); border-radius:18px; border:1px solid var(--line); padding:18px 20px}
+  .card.table{padding:0; overflow:hidden}
+  ul{list-style:none; margin:0; padding:0}
+  li{
+    padding:9px 0; border-bottom:1px solid var(--bg); font-size:17px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  li:last-child{border-bottom:none}
+  .alg{font-size:11px; color:var(--sub)}
+  .cal{margin:14px 0 0; font-size:13px; color:var(--sub); text-align:right}
+  .note{font-size:12px; color:var(--sub); margin:10px 4px 0}
+  .muted{color:var(--sub)} .err{color:#A33}
+  .tt-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px}
+  .tt-head h2{margin:0; font-size:17px; font-weight:800}
+  .editbtn{
+    border:1.5px solid var(--board); background:transparent; color:var(--board);
+    border-radius:10px; padding:6px 14px; font-size:13px; font-weight:700;
+  }
+  .editbtn.on{background:var(--board); color:#FFF}
+  table{width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed}
+  th{padding:10px 0; font-weight:700; border-bottom:1px solid var(--line); color:var(--sub)}
+  th.today{background:var(--chalk); color:var(--ink)}
+  td{padding:10px 2px; text-align:center; border-bottom:1px solid var(--bg); word-break:keep-all}
+  td.pnum{color:var(--sub); font-weight:700; background:#FAFBF9; width:30px}
+  td.today{background:#FDF6DC; font-weight:700}
+  .subj{line-height:1.25}
+  .tch{font-size:10px; color:var(--sub); font-weight:500}
+  .dot{color:#C9CFC9}
+  td input{
+    width:100%; border:1px solid var(--line); border-radius:6px;
+    padding:4px 2px; font-size:12px; text-align:center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="head-row">
+    <h1>대동고 오늘</h1>
+    <span class="today-lbl" id="todayLbl"></span>
+  </div>
+  <nav>
+    <button id="tabMeal" class="on">급식</button>
+    <button id="tabTt">시간표</button>
+  </nav>
+</header>
+<main>
+  <section id="mealView">
+    <div class="datebar">
+      <button class="navbtn" id="prevD">←</button>
+      <button class="datebtn" id="dateBtn"></button>
+      <button class="navbtn" id="nextD">→</button>
+    </div>
+    <div class="card" id="mealCard"><p class="muted" style="margin:0">불러오는 중…</p></div>
+    <p class="note">작은 숫자는 알레르기 정보야 · 출처: 나이스 교육정보 개방포털</p>
+  </section>
+
+  <section id="ttView" style="display:none">
+    <div class="tt-head">
+      <h2>2학년 2반 시간표</h2>
+      <button class="editbtn" id="editBtn">수정</button>
+    </div>
+    <div class="card table"><table id="ttTable"></table></div>
+    <p class="note">수정할 땐 '과목|선생님' 형식으로 쓰면 두 줄로 표시돼.</p>
+  </section>
+</main>
+
+<script>
+const DAYS=["월","화","수","목","금"], PERIODS=7;
+const DEFAULT_TT=[
+ ["확통|손은진","영어Ⅱ|정아름","한국사|김채은","화학반응|곽선영","한국사|신승빈"],
+ ["미적Ⅱ|정영수","역학|송우준","스포츠|김채린","역학|송우준","영어Ⅱ|지은경"],
+ ["일본어|허지혜","확통|손은진","화학반응|곽선영","미술|노승희","화언|이수정"],
+ ["영어Ⅱ|오성준","화언|이수정","미적Ⅱ|정영수","미적Ⅱ|정영수","일본어|허지혜"],
+ ["미술|노승희","화학반응|곽선영","일본어|허지혜","영어Ⅱ|지은경","역학|송우준"],
+ ["한국사|신승빈","","확통|손은진","화언|이수정","미적Ⅱ|정영수"],
+ ["화언|이수정","","","확통|손은진",""]
+];
+let tt; try{ tt=JSON.parse(localStorage.getItem("daedong-tt"))||DEFAULT_TT; }catch(e){ tt=DEFAULT_TT; }
+if(!tt.flat().some(c=>c)) tt=DEFAULT_TT;
+let schoolCode=null; try{ schoolCode=JSON.parse(localStorage.getItem("daedong-school")); }catch(e){}
+let date=new Date(), editing=false;
+
+const fmt=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+const label=d=>{const w=["일","월","화","수","목","금","토"][d.getDay()];return `${d.getMonth()+1}월 ${d.getDate()}일 (${w})`;};
+const todayIdx=()=>{const w=new Date().getDay();return w>=1&&w<=5?w-1:-1;};
+
+document.getElementById("todayLbl").textContent=label(new Date());
+
+/* 탭 */
+const tabMeal=document.getElementById("tabMeal"), tabTt=document.getElementById("tabTt");
+tabMeal.onclick=()=>{tabMeal.classList.add("on");tabTt.classList.remove("on");
+ mealView.style.display="";ttView.style.display="none";};
+tabTt.onclick=()=>{tabTt.classList.add("on");tabMeal.classList.remove("on");
+ ttView.style.display="";mealView.style.display="none";};
+
+/* 급식 */
+async function resolveSchool(){
+  if(schoolCode) return schoolCode;
+  const res=await fetch("https://open.neis.go.kr/hub/schoolInfo?Type=json&ATPT_OFCDC_SC_CODE=C10&SCHUL_NM="+encodeURIComponent("대동고등학교"));
+  const data=await res.json();
+  const row=data?.schoolInfo?.[1]?.row?.[0];
+  if(!row) throw new Error("no school");
+  schoolCode={atpt:row.ATPT_OFCDC_SC_CODE,schul:row.SD_SCHUL_CODE};
+  localStorage.setItem("daedong-school",JSON.stringify(schoolCode));
+  return schoolCode;
+}
+async function loadMeal(){
+  const card=document.getElementById("mealCard");
+  card.innerHTML='<p class="muted" style="margin:0">불러오는 중…</p>';
+  document.getElementById("dateBtn").innerHTML=
+    label(date)+(fmt(date)===fmt(new Date())?'<span class="badge">오늘</span>':"");
+  try{
+    const c=await resolveSchool();
+    const res=await fetch(`https://open.neis.go.kr/hub/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${c.atpt}&SD_SCHUL_CODE=${c.schul}&MLSV_YMD=${fmt(date)}`);
+    const data=await res.json();
+    if(data?.RESULT?.MESSAGE){card.innerHTML=`<p class="err" style="margin:0">나이스 응답: ${data.RESULT.MESSAGE}</p>`;return;}
+    const rows=data?.mealServiceDietInfo?.[1]?.row;
+    if(!rows||!rows.length){card.innerHTML='<p class="muted" style="margin:0">이 날은 급식이 없어. 주말이나 방학일 수 있어.</p>';return;}
+    const NAME={ "1":"조식", "2":"중식", "3":"석식" };
+    const order=["2","3","1"];
+    const sorted=rows.slice().sort((a,b)=>order.indexOf(a.MMEAL_SC_CODE)-order.indexOf(b.MMEAL_SC_CODE));
+    card.innerHTML=sorted.map((r,ri)=>{
+      const items=r.DDISH_NM.split("<br/>").map(s=>{
+        const m=s.trim().match(/^(.*?)\s*\(([\d.]+)\)\s*$/);
+        return m?{n:m[1],a:m[2]}:{n:s.trim(),a:""};
+      });
+      return `
+        <h3 style="margin:${ri===0?"0":"18px"} 0 6px;font-size:14px;font-weight:800;color:var(--board)">
+          ${NAME[r.MMEAL_SC_CODE]||r.MMEAL_SC_NM}
+        </h3>
+        <ul>`+items.map(d=>
+          `<li><span>${d.n}</span>${d.a?`<span class="alg">${d.a}</span>`:""}</li>`).join("")+`</ul>`+
+        (r.CAL_INFO?`<p class="cal">${r.CAL_INFO}</p>`:"");
+    }).join("");
+  }catch(e){
+    card.innerHTML='<p class="err" style="margin:0">급식 정보를 불러오지 못했어. 네트워크 상태를 확인하고 다시 시도해 줘.</p>';
+  }
+}
+document.getElementById("prevD").onclick=()=>{date.setDate(date.getDate()-1);loadMeal();};
+document.getElementById("nextD").onclick=()=>{date.setDate(date.getDate()+1);loadMeal();};
+document.getElementById("dateBtn").onclick=()=>{date=new Date();loadMeal();};
+loadMeal();
+
+/* 시간표 */
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+function renderTt(){
+  const ti=todayIdx();
+  let html="<thead><tr><th style='width:30px'></th>"+
+    DAYS.map((d,i)=>`<th class="${i===ti?"today":""}">${d}</th>`).join("")+"</tr></thead><tbody>";
+  tt.forEach((row,p)=>{
+    html+=`<tr><td class="pnum">${p+1}</td>`+row.map((cell,d)=>{
+      const cls=d===ti?"today":"";
+      if(editing) return `<td class="${cls}"><input data-p="${p}" data-d="${d}" value="${esc(cell)}"></td>`;
+      if(!cell) return `<td class="${cls}"><span class="dot">·</span></td>`;
+      const [s,t]=cell.split("|");
+      return `<td class="${cls}"><div class="subj"><div>${s}</div>${t?`<div class="tch">${t}</div>`:""}</div></td>`;
+    }).join("")+"</tr>";
+  });
+  document.getElementById("ttTable").innerHTML=html+"</tbody>";
+  if(editing) document.querySelectorAll("#ttTable input").forEach(inp=>{
+    inp.oninput=()=>{tt[inp.dataset.p][inp.dataset.d]=inp.value;
+      localStorage.setItem("daedong-tt",JSON.stringify(tt));};
+  });
+}
+document.getElementById("editBtn").onclick=function(){
+  editing=!editing;
+  this.textContent=editing?"저장 완료":"수정";
+  this.classList.toggle("on",editing);
+  renderTt();
+};
+renderTt();
+</script>
+</body>
+</html>
